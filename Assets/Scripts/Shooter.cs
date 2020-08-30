@@ -39,20 +39,11 @@ public class Shooter : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        HandleInput();
         updateLine();
         handleJoint();
     }
 
-    private void HandleInput()
-    { 
-        if (Input.GetKeyDown(KeyCode.Space) )
-        {
-            FireProjectile();
-        }
-    }
-
-    private void FireProjectile()
+    public void FireProjectile()
     {
         _projectileScript.isHooked = false;
         _projectileGameObject.transform.position = transform.position;

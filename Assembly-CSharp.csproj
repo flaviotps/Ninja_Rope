@@ -53,6 +53,7 @@
      <Compile Include="Assets\Scripts\Shooter.cs" />
      <Compile Include="Assets\Scripts\Projectile.cs" />
      <Compile Include="Assets\Scripts\Controller.cs" />
+     <Compile Include="Assets\Scripts\Movement.cs" />
  <Reference Include="Unity.Timeline.Editor">
  <HintPath>C:/Users/PICHAU/Documents/unity/Ninja Rope/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
  </Reference>

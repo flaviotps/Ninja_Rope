@@ -1,14 +1,14 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Controller : MonoBehaviour
 {
     // Start is called before the first frame update
-    [SerializeField] public Rigidbody2D rigidbody2D;
-    [SerializeField] public DistanceJoint2D distanceJoint2D;
-    [SerializeField] public int moveSpeed = 10;
-    [SerializeField] public int climbSpeed = 100;
+    [SerializeField] public Shooter shooterScript;
+    [SerializeField] public Movement movementScript;
+    private Boolean _isSwinging = false;
     void Start()
     {
         
@@ -22,28 +22,61 @@ public class Controller : MonoBehaviour
     
     private void HandleInput()
     { 
-        if (Input.GetKey(KeyCode.RightArrow) )
-        {
-            transform.position += Vector3.right * moveSpeed * Time.deltaTime;
-        }
-        
         if (Input.GetKey(KeyCode.UpArrow) )
         {
-            distanceJoint2D.distance -= climbSpeed * Time.deltaTime;
-            if (distanceJoint2D.distance < 0)
-            {
-                distanceJoint2D.distance = 0;
-            }
+            movementScript.climbUp();
         }
         
         if (Input.GetKey(KeyCode.DownArrow) )
         {
-            distanceJoint2D.distance += climbSpeed * Time.deltaTime;
+            movementScript.climbDown();
+        }
+        
+        if (Input.GetKey(KeyCode.RightArrow) )
+        {
+            if (_isSwinging)
+            {
+                movementScript.swingRight();
+            }
+            else
+            { 
+                movementScript.moveRight();
+            }
         }
         
         if (Input.GetKey(KeyCode.LeftArrow) )
         {
-            transform.position += Vector3.right * -moveSpeed * Time.deltaTime;
+            if (_isSwinging)
+            {
+                movementScript.swingLeft();
+            }
+            else
+            {
+                movementScript.moveLeft();
+            }
+        }
+        
+        if (Input.GetKeyDown(KeyCode.Space) )
+        {
+            shooterScript.FireProjectile();
         }
     }
+
+    /*private void OnCollisionEnter2D(Collision2D other)
+    {
+        Debug.Log("OnCollisionEnter2D" + other.gameObject.layer);
+        if (other.collider.IsTouchingLayers(LayerMask.GetMask("Wall")))
+        {
+            _isSwinging = false;
+        }
+    }
+
+    private void OnCollisionExit2D(Collision2D other)
+    {
+        Debug.Log("OnCollisionExit2D" + other.gameObject.layer);
+        if (other.collider.IsTouchingLayers(LayerMask.GetMask("Wall")))
+        {
+            _isSwinging = true;
+        }
+    }*/
 }
