@@ -8,7 +8,8 @@ public class Controller : MonoBehaviour
     // Start is called before the first frame update
     [SerializeField] public Shooter shooterScript;
     [SerializeField] public Movement movementScript;
-    private Boolean _isSwinging = false;
+    [SerializeField] public BoxCollider2D boxCollider2D;
+    private Boolean _isGrounded;
     void Start()
     {
         
@@ -22,6 +23,8 @@ public class Controller : MonoBehaviour
     
     private void HandleInput()
     { 
+        _isGrounded = Physics2D.IsTouchingLayers(boxCollider2D, LayerMask.GetMask("Wall"));
+
         if (Input.GetKey(KeyCode.UpArrow) )
         {
             movementScript.climbUp();
@@ -34,25 +37,25 @@ public class Controller : MonoBehaviour
         
         if (Input.GetKey(KeyCode.RightArrow) )
         {
-            if (_isSwinging)
+            if (_isGrounded)
             {
-                movementScript.swingRight();
+                movementScript.moveRight();
             }
             else
-            { 
-                movementScript.moveRight();
+            {
+                movementScript.swingRight();
             }
         }
         
         if (Input.GetKey(KeyCode.LeftArrow) )
         {
-            if (_isSwinging)
+            if (_isGrounded)
             {
-                movementScript.swingLeft();
+                movementScript.moveLeft();
             }
             else
             {
-                movementScript.moveLeft();
+                movementScript.swingLeft();
             }
         }
         
@@ -61,22 +64,4 @@ public class Controller : MonoBehaviour
             shooterScript.FireProjectile();
         }
     }
-
-    /*private void OnCollisionEnter2D(Collision2D other)
-    {
-        Debug.Log("OnCollisionEnter2D" + other.gameObject.layer);
-        if (other.collider.IsTouchingLayers(LayerMask.GetMask("Wall")))
-        {
-            _isSwinging = false;
-        }
-    }
-
-    private void OnCollisionExit2D(Collision2D other)
-    {
-        Debug.Log("OnCollisionExit2D" + other.gameObject.layer);
-        if (other.collider.IsTouchingLayers(LayerMask.GetMask("Wall")))
-        {
-            _isSwinging = true;
-        }
-    }*/
 }

@@ -8,9 +8,8 @@ public class Projectile : MonoBehaviour
     // Start is called before the first frame update
 
     private Rigidbody2D _rigidbody2D;
-    private const int Force = 1000;
     private const string HookTag = "hookable";
-    public Boolean isHooked = false;
+    public Boolean isHooked ;
 
     void Start()
     {
