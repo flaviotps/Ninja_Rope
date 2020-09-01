@@ -10,7 +10,7 @@ public class Projectile : MonoBehaviour
     private Rigidbody2D _rigidbody2D;
     private const string HookTag = "hookable";
     public Boolean isHooked ;
-
+    
     void Start()
     {
         _rigidbody2D = GetComponent<Rigidbody2D>(); 
