@@ -39,6 +39,9 @@ public class Shooter : MonoBehaviour
         _projectileGameObject.name = "Projectile";
         _projectileRigidbody2D = _projectileGameObject.GetComponent<Rigidbody2D>();
         _projectileScript = _projectileGameObject.GetComponent<Projectile>();
+        _projectileScript.isHooked = false;
+        //**@@@@@ ATTENTION @@@@@** 
+        Physics2D.IgnoreCollision(boxCollider2D, _projectileGameObject.GetComponent<BoxCollider2D>());
     }
 
     // Update is called once per frame
@@ -59,23 +62,31 @@ public class Shooter : MonoBehaviour
 
     private void updateLine()
     {
-       //ALOCATE ENOUGH POSITIONS TO ALL SEGMENTS + LAST SEGMENT
-        lineRenderer.positionCount = _rayCastJointPoints.Count + 1;
-        //DRAW ALL LINES SEGMENTS
-        for (var index = 0; index < _rayCastJointPoints.Count; index++)
+        if (_projectileScript.isHooked)
         {
-            lineRenderer.SetPosition(index ,_rayCastJointPoints[index]);
+            //ALOCATE ENOUGH POSITIONS TO ALL SEGMENTS + LAST SEGMENT
+            lineRenderer.positionCount = _rayCastJointPoints.Count + 1;
+            //DRAW ALL LINES SEGMENTS
+            for (var index = 0; index < _rayCastJointPoints.Count; index++)
+            {
+                lineRenderer.SetPosition(index, _rayCastJointPoints[index]);
+            }
+
+            //DRAW THE LAST LINE SEGMENT (CLOSEST HOOK JOINT TO PLAYER)
+            lineRenderer.SetPosition(lineRenderer.positionCount - 1, shooterGuide.transform.position);
         }
-        
-        //DRAW THE LAST LINE SEGMENT (CLOSEST HOOK JOINT TO PLAYER)
-        lineRenderer.SetPosition(lineRenderer.positionCount - 1,shooterGuide.transform.position);
+        else
+        {
+            lineRenderer.positionCount = 0;
+            _rayCastJointPoints.Clear();
+        }
     }
 
 
     private void handleJoint()
     {
         var isGrounded = Physics2D.IsTouchingLayers(boxCollider2D, LayerMask.GetMask("Wall"));
-        if (_projectileScript.isHooked && !isGrounded)
+        if (_projectileScript.isHooked /*&& !isGrounded*/)
         {
             //ADDS THE INITIAL HOOK POSITION TO THE LIST
             if (_rayCastJointPoints.Count == 0)
@@ -98,12 +109,17 @@ public class Shooter : MonoBehaviour
                         LayerMask.GetMask("Wall"));
                     if (nextHit.collider != null)
                     {
-                        _rayCastJointPoints.Add(nextHit.point);
-                        _projectileGameObject.transform.position = nextHit.point;
-                        Instantiate(projectilePrefab, nextHit.point, Quaternion.identity);
+                        if (Vector2.Distance(nextHit.transform.position, _rayCastJointPoints[_rayCastJointPoints.Count - 1]) >
+                            jointHitLimiar)
+                        {
+                            if (_rayCastJointPoints.FindAll(vector => vector == nextHit.point).Count == 0)
+                            {
+                                _rayCastJointPoints.Add(nextHit.point);
+                                _projectileGameObject.transform.position = nextHit.point;
+                            }
+                        }
                     }
-                    
-                    
+
                     /*if (_rayCastJointPoints.Count >= 2)
                     {
                         var hitPrevious = Physics2D.Linecast(_rayCastJointPoints[_rayCastJointPoints.Count - 2],
@@ -111,27 +127,20 @@ public class Shooter : MonoBehaviour
                             LayerMask.GetMask("Wall"));
                         if (hitPrevious.collider != null)
                         {
-                            _projectileGameObject.transform.position = _rayCastJointPoints[_rayCastJointPoints.Count - 2];
-                            _rayCastJointPoints.RemoveAt(_rayCastJointPoints.Count - 1);
+                           // _projectileGameObject.transform.position = _rayCastJointPoints[_rayCastJointPoints.Count - 2];
+                           // _rayCastJointPoints.RemoveAt(_rayCastJointPoints.Count - 1);
                         }
                     }*/
             }
-            
-      
 
-    
-
-            distanceJoint2D.autoConfigureDistance = false;
             distanceJoint2D.enabled = true;
             distanceJoint2D.connectedBody = _projectileRigidbody2D;
-            distanceJoint2D.connectedAnchor = _projectileGameObject.transform.position;
             distanceJoint2D.anchor = Vector2.zero;
         }
         else if(!_projectileScript.isHooked)
         {
             distanceJoint2D.enabled = false;
             distanceJoint2D.connectedBody = null;
-            distanceJoint2D.connectedAnchor = Vector2.zero;
             distanceJoint2D.anchor = Vector2.zero;
         }
     }
