@@ -523,7 +523,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   serializedVersion: 2
   m_Size: {x: 4.0000005, y: 3.9999998}
-  m_EdgeRadius: 0
+  m_EdgeRadius: 0.25
 --- !u!114 &646768595
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -635,7 +635,7 @@ SpriteShapeRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0.9339623, b: 0.16362394, a: 0.07058824}
   m_MaskInteraction: 0
   m_ShapeTexture: {fileID: 0}
   m_Sprites: []
@@ -960,13 +960,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   projectilePrefab: {fileID: 3442141690379376478, guid: f37e4ba7010e1f74eb3785c730cee5e5, type: 3}
+  hookPointPrefab: {fileID: 3442141690379376478, guid: b15c689ff26251f4e90b652532b9b176, type: 3}
   shooterGuide: {fileID: 307000063}
   lineRenderer: {fileID: 767316681}
   distanceJoint2D: {fileID: 767316682}
   rigidbody2D: {fileID: 767316676}
   boxCollider2D: {fileID: 767316677}
   projectileForce: 1000
-  jointHitLimiar: 0.01
+  addJointHitLimiar: 0.5
+  removeJointHitLimiar: 0
 --- !u!212 &767316679
 SpriteRenderer:
   m_ObjectHideFlags: 0

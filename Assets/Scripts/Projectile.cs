@@ -13,7 +13,13 @@ public class Projectile : MonoBehaviour
     
     void Start()
     {
-        _rigidbody2D = GetComponent<Rigidbody2D>(); 
+        _rigidbody2D = GetComponent<Rigidbody2D>();
+    }
+
+    private void Awake()
+    {
+        transform.name = "Projectile";
+        isHooked = false;
     }
 
     // Update is called once per frame

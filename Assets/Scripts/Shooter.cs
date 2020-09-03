@@ -1,54 +1,43 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 public class Shooter : MonoBehaviour
 {
     [SerializeField] public GameObject projectilePrefab;
     [SerializeField] public GameObject shooterGuide;
-    [SerializeField] public LineRenderer lineRenderer;
-    [SerializeField] public DistanceJoint2D distanceJoint2D;
-    [SerializeField] public Rigidbody2D rigidbody2D;
-    [SerializeField] public BoxCollider2D boxCollider2D;
     [SerializeField] public int projectileForce = 1000;
     [SerializeField] public float jointHitLimiar = 0.1f;
-    
+
+    //PLAYER
+    private DistanceJoint2D _distanceJoint2D;
+    private LineRenderer _lineRenderer;
+    private BoxCollider2D _boxCollider2D;
+
     //PROJECTILE
     private GameObject _projectileGameObject;
     private Projectile _projectileScript;
     private Rigidbody2D _projectileRigidbody2D;
     
-    private List<Vector2> _rayCastJointPoints = new List<Vector2>();
+    private readonly List<Vector2> _rayCastJointPoints = new List<Vector2>();
 
     void Start()
     {
-        if (projectilePrefab == null)
-        {
-            Debug.LogError("projectilePrefab is null");
-        }
-        
-        if (shooterGuide == null)
-        {
-            Debug.LogError("shooterGuide is null");
-        }
-        if (lineRenderer == null)
-        {
-            Debug.LogError("lineRenderer is null");
-        }
-        
+        _lineRenderer = GetComponent<LineRenderer>();
+        _distanceJoint2D = GetComponent<DistanceJoint2D>();
+        _boxCollider2D = GetComponent<BoxCollider2D>();
         _projectileGameObject = Instantiate(projectilePrefab, shooterGuide.transform.position, shooterGuide.transform.rotation);
-        _projectileGameObject.name = "Projectile";
         _projectileRigidbody2D = _projectileGameObject.GetComponent<Rigidbody2D>();
         _projectileScript = _projectileGameObject.GetComponent<Projectile>();
-        _projectileScript.isHooked = false;
-        //**@@@@@ ATTENTION @@@@@** 
-        Physics2D.IgnoreCollision(boxCollider2D, _projectileGameObject.GetComponent<BoxCollider2D>());
+        Physics2D.IgnoreCollision(_boxCollider2D, _projectileGameObject.GetComponent<CircleCollider2D>());
     }
 
     // Update is called once per frame
     void Update()
     {
-        updateLine();
-        handleJoint();
+        UpdateLine();
+        HandleJoint();
     }
 
     public void FireProjectile()
@@ -60,88 +49,115 @@ public class Shooter : MonoBehaviour
         _projectileRigidbody2D.AddForce(_projectileGameObject.transform.up * projectileForce);
     }
 
-    private void updateLine()
+    private void UpdateLine()
     {
         if (_projectileScript.isHooked)
         {
             //ALOCATE ENOUGH POSITIONS TO ALL SEGMENTS + LAST SEGMENT
-            lineRenderer.positionCount = _rayCastJointPoints.Count + 1;
+            _lineRenderer.positionCount = _rayCastJointPoints.Count + 1;
             //DRAW ALL LINES SEGMENTS
             for (var index = 0; index < _rayCastJointPoints.Count; index++)
             {
-                lineRenderer.SetPosition(index, _rayCastJointPoints[index]);
+                _lineRenderer.SetPosition(index, _rayCastJointPoints[index]);
             }
 
             //DRAW THE LAST LINE SEGMENT (CLOSEST HOOK JOINT TO PLAYER)
-            lineRenderer.SetPosition(lineRenderer.positionCount - 1, shooterGuide.transform.position);
+            _lineRenderer.SetPosition(_lineRenderer.positionCount - 1, shooterGuide.transform.position.round2d());
         }
         else
         {
-            lineRenderer.positionCount = 0;
+            _lineRenderer.positionCount = 0;
             _rayCastJointPoints.Clear();
+        }
+
+        if (_rayCastJointPoints.Count > 2)
+        {
+            Debug.DrawLine(shooterGuide.transform.position.round2d(), _rayCastJointPoints.getAtEnd( 2).round2d());
         }
     }
 
 
-    private void handleJoint()
+    private void HandleJoint()
     {
-        var isGrounded = Physics2D.IsTouchingLayers(boxCollider2D, LayerMask.GetMask("Wall"));
-        if (_projectileScript.isHooked /*&& !isGrounded*/)
+        if (_projectileScript.isHooked)
         {
             //ADDS THE INITIAL HOOK POSITION TO THE LIST
             if (_rayCastJointPoints.Count == 0)
             {
-                var projectileHit = Physics2D.Linecast(shooterGuide.transform.position,
-                    _projectileGameObject.transform.position,
+                var projectileHit = Physics2D.Linecast(shooterGuide.transform.position.round2d(),
+                    _projectileGameObject.transform.position.round2d(),
                     LayerMask.GetMask("Projectile"));
 
-                if (projectileHit.collider != null)
+                if (!ReferenceEquals(projectileHit.collider, null))
                 {
-                    _rayCastJointPoints.Add(projectileHit.point);
-                    _projectileGameObject.transform.position = projectileHit.point;
+                    _rayCastJointPoints.Add(projectileHit.point.round2d());
+                    _projectileGameObject.transform.position = projectileHit.point.round2d();
                 }
             }
-            //ADDS HOOK JOINS WHEN THE ROPE COLLIDES WITH A WALL
             else if (_rayCastJointPoints.Count > 0)
             {
-                var nextHit = Physics2D.Linecast(shooterGuide.transform.position,
-                        _projectileGameObject.transform.position,
+                //ADDS HOOK JOINS WHEN THE ROPE COLLIDES WITH A WALL
+                var nextHit = Physics2D.Linecast(shooterGuide.transform.position.round2d(),
+                        _projectileGameObject.transform.position.round2d(),
                         LayerMask.GetMask("Wall"));
-                    if (nextHit.collider != null)
-                    {
-                        if (Vector2.Distance(nextHit.transform.position, _rayCastJointPoints[_rayCastJointPoints.Count - 1]) >
-                            jointHitLimiar)
-                        {
-                            if (_rayCastJointPoints.FindAll(vector => vector == nextHit.point).Count == 0)
-                            {
-                                _rayCastJointPoints.Add(nextHit.point);
-                                _projectileGameObject.transform.position = nextHit.point;
-                            }
-                        }
-                    }
+              if (!ReferenceEquals(nextHit.collider,null))
+              {
+                  var distance = Vector2.Distance(nextHit.transform.position.round2d(),
+                      _rayCastJointPoints.last().round2d());
+                  if (distance > jointHitLimiar)
+                  {
+                      if (_rayCastJointPoints.FindAll(vector => vector == nextHit.point.round2d()).Count == 0)
+                      {
+                          _rayCastJointPoints.Add(nextHit.point.round2d());
+                          _projectileGameObject.transform.position = nextHit.point.round2d();
+                      }
+                  }
+              }
 
-                    /*if (_rayCastJointPoints.Count >= 2)
-                    {
-                        var hitPrevious = Physics2D.Linecast(_rayCastJointPoints[_rayCastJointPoints.Count - 2],
-                            shooterGuide.transform.position,
-                            LayerMask.GetMask("Wall"));
-                        if (hitPrevious.collider != null)
-                        {
-                           // _projectileGameObject.transform.position = _rayCastJointPoints[_rayCastJointPoints.Count - 2];
-                           // _rayCastJointPoints.RemoveAt(_rayCastJointPoints.Count - 1);
-                        }
-                    }*/
+              //REMOVE HOOK JOINTS
+              if (_rayCastJointPoints.Count >= 2)
+              {
+                  if (_distanceJoint2D.distance.round(0) == 0)
+                  {
+                      _projectileGameObject.transform.position = _rayCastJointPoints.getAtEnd(2).round2d();
+                      _rayCastJointPoints.RemoveAt(_rayCastJointPoints.lastIndex());
+                  }
+                  else
+                  {
+                      var hitPrevious = Physics2D.Linecast(shooterGuide.transform.position.round2d(),
+                          _rayCastJointPoints.getAtEnd(2).round2d(),
+                          LayerMask.GetMask("Wall"));
+
+                      if (ReferenceEquals(hitPrevious.collider, null))
+                      {
+                          _projectileGameObject.transform.position = _rayCastJointPoints.getAtEnd(2).round2d();
+                          _rayCastJointPoints.RemoveAt(_rayCastJointPoints.lastIndex());
+                      }
+                      else
+                      {
+                          var distance = Vector2.Distance(hitPrevious.point,
+                              _rayCastJointPoints.getAtEnd(
+                                  2).round2d());
+
+                          if (distance.round(0) == 0)
+                          {
+                              _projectileGameObject.transform.position = _rayCastJointPoints.getAtEnd(2).round2d();
+                              _rayCastJointPoints.RemoveAt(_rayCastJointPoints.lastIndex());
+                          }
+                      }
+                  }
+              }
             }
 
-            distanceJoint2D.enabled = true;
-            distanceJoint2D.connectedBody = _projectileRigidbody2D;
-            distanceJoint2D.anchor = Vector2.zero;
+            _distanceJoint2D.enabled = true;
+            _distanceJoint2D.connectedBody = _projectileRigidbody2D;
+            _distanceJoint2D.anchor = Vector2.zero;
         }
         else if(!_projectileScript.isHooked)
         {
-            distanceJoint2D.enabled = false;
-            distanceJoint2D.connectedBody = null;
-            distanceJoint2D.anchor = Vector2.zero;
+            _distanceJoint2D.enabled = false;
+            _distanceJoint2D.connectedBody = null;
+            _distanceJoint2D.anchor = Vector2.zero;
         }
     }
 }

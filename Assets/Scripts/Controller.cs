@@ -18,13 +18,12 @@ public class Controller : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        _isGrounded = Physics2D.IsTouchingLayers(boxCollider2D, LayerMask.GetMask("Wall"));
         HandleInput();
     }
     
     private void HandleInput()
-    { 
-        _isGrounded = Physics2D.IsTouchingLayers(boxCollider2D, LayerMask.GetMask("Wall"));
-
+    {
         if (Input.GetKey(KeyCode.UpArrow) )
         {
             movementScript.climbUp();
@@ -62,6 +61,15 @@ public class Controller : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) )
         {
             shooterScript.FireProjectile();
+        }
+        
+        
+        if (Input.GetKey(KeyCode.UpArrow) )
+        {
+            if (_isGrounded)
+            {
+                movementScript.jump();
+            }
         }
     }
 }
