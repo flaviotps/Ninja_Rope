@@ -7,10 +7,15 @@ public class Movement : MonoBehaviour
 {
     [SerializeField] public Rigidbody2D rigidbody2D;
     [SerializeField] public DistanceJoint2D distanceJoint2D;
-    [SerializeField] public int moveSpeed = 10;
+    [SerializeField] public LayerMask groundLayer;
+    [SerializeField] public float moveSpeed = 0.5f;
     [SerializeField] public int climbSpeed = 100;
-    [SerializeField] public int impulseForce = 1000;
-    [SerializeField] public int jumpForce = 1000;
+    [SerializeField] public int impulseForce = 100;
+    [SerializeField] public int jumpForce = 100;
+    [SerializeField] public int maxVelocity = 20;
+    
+    private float _rayCastDistance = 0.5f;
+    private Vector2 _direction = Vector2.zero;
     // Start is called before the first frame update
     void Start()
     {
@@ -20,30 +25,45 @@ public class Movement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        RaycastHit2D hitDirection = Physics2D.Raycast(transform.position, Vector2.down, _rayCastDistance, groundLayer);
+
+        if (hitDirection.collider != null)
+        {
+            Debug.DrawRay(transform.position, hitDirection.normal, Color.white);
+            Debug.DrawRay(transform.position, Vector2.down * _rayCastDistance, Color.yellow);
+            _direction = hitDirection.normal;
+        }
+
+        if (rigidbody2D.velocity.magnitude > maxVelocity)
+        {
+            rigidbody2D.velocity = rigidbody2D.velocity.normalized * maxVelocity;
+        }
+
     }
 
-    public void swingRight()
+    public void SwingRight(Projectile projectile)
     {
         rigidbody2D.AddForce(transform.right * (impulseForce * Time.deltaTime), ForceMode2D.Impulse); 
     }
     
-    public void swingLeft()
+    public void SwingLeft(Projectile projectile)
     {
         rigidbody2D.AddForce(transform.right * (-impulseForce * Time.deltaTime), ForceMode2D.Impulse); 
     }
     
-    public void moveRight()
+    public void MoveRight()
     {
-        transform.position += new Vector3(1*moveSpeed * Time.deltaTime,0,0);
+        var forceDirection = new Vector2(_direction.y, -_direction.x);
+        transform.Translate(forceDirection  * moveSpeed);
     }
     
-    public void moveLeft()
+    public void MoveLeft()
     {
-        transform.position += new Vector3(-1*moveSpeed * Time.deltaTime,0,0);
+        var forceDirection = new Vector2(-_direction.y, _direction.x);
+        transform.Translate(forceDirection * moveSpeed);
     }
     
-    public void climbUp()
+    public void ClimbUp()
     {
         distanceJoint2D.distance -= climbSpeed * Time.deltaTime;
         if (distanceJoint2D.distance < 0)
@@ -52,12 +72,12 @@ public class Movement : MonoBehaviour
         }
     }
     
-    public void climbDown()
+    public void ClimbDown()
     {
         distanceJoint2D.distance += climbSpeed * Time.deltaTime;
     }
     
-    public void jump()
+    public void Jump()
     {
         rigidbody2D.AddForce(transform.up * (jumpForce * Time.deltaTime), ForceMode2D.Impulse); 
     }

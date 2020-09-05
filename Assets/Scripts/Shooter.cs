@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.U2D;
 using Object = UnityEngine.Object;
 
 public class Shooter : MonoBehaviour
@@ -9,16 +10,20 @@ public class Shooter : MonoBehaviour
     [SerializeField] public GameObject shooterGuide;
     [SerializeField] public int projectileForce = 1000;
     [SerializeField] public float jointHitLimiar = 0.1f;
+    [SerializeField] public LayerMask wallLayer;
+    [SerializeField] public LayerMask projectileLayer;
 
     //PLAYER
     private DistanceJoint2D _distanceJoint2D;
     private LineRenderer _lineRenderer;
     private BoxCollider2D _boxCollider2D;
+    private Rigidbody2D _rigidbody2D;
 
     //PROJECTILE
     private GameObject _projectileGameObject;
     private Projectile _projectileScript;
     private Rigidbody2D _projectileRigidbody2D;
+    private SpriteShapeRenderer _spriteShapeRenderer;
     
     private readonly List<Vector2> _rayCastJointPoints = new List<Vector2>();
 
@@ -27,9 +32,11 @@ public class Shooter : MonoBehaviour
         _lineRenderer = GetComponent<LineRenderer>();
         _distanceJoint2D = GetComponent<DistanceJoint2D>();
         _boxCollider2D = GetComponent<BoxCollider2D>();
+        _rigidbody2D = GetComponent<Rigidbody2D>();
         _projectileGameObject = Instantiate(projectilePrefab, shooterGuide.transform.position, shooterGuide.transform.rotation);
         _projectileRigidbody2D = _projectileGameObject.GetComponent<Rigidbody2D>();
         _projectileScript = _projectileGameObject.GetComponent<Projectile>();
+        _spriteShapeRenderer = _projectileGameObject.GetComponent<SpriteShapeRenderer>();
         Physics2D.IgnoreCollision(_boxCollider2D, _projectileGameObject.GetComponent<CircleCollider2D>());
     }
 
@@ -42,11 +49,20 @@ public class Shooter : MonoBehaviour
 
     public void FireProjectile()
     {
-        _rayCastJointPoints.Clear();
-        _projectileScript.isHooked = false;
-        _projectileGameObject.transform.position = transform.position;
-        _projectileRigidbody2D.bodyType = RigidbodyType2D.Dynamic;
-        _projectileRigidbody2D.AddForce(_projectileGameObject.transform.up * projectileForce);
+        if (_projectileScript.isHooked)
+        {
+            _rayCastJointPoints.Clear();
+            _projectileScript.isHooked = false;
+            _spriteShapeRenderer.enabled = false;
+            _rigidbody2D.velocity *= new Vector2(1, 0);
+        }
+        else
+        {
+            _spriteShapeRenderer.enabled = true;
+            _projectileGameObject.transform.position = shooterGuide.transform.position;
+            _projectileRigidbody2D.bodyType = RigidbodyType2D.Dynamic;
+            _projectileRigidbody2D.AddForce(_projectileGameObject.transform.up * projectileForce);
+        }
     }
 
     private void UpdateLine()
@@ -85,8 +101,7 @@ public class Shooter : MonoBehaviour
             if (_rayCastJointPoints.Count == 0)
             {
                 var projectileHit = Physics2D.Linecast(shooterGuide.transform.position.round2d(),
-                    _projectileGameObject.transform.position.round2d(),
-                    LayerMask.GetMask("Projectile"));
+                    _projectileGameObject.transform.position.round2d(),projectileLayer);
 
                 if (!ReferenceEquals(projectileHit.collider, null))
                 {
@@ -98,8 +113,7 @@ public class Shooter : MonoBehaviour
             {
                 //ADDS HOOK JOINS WHEN THE ROPE COLLIDES WITH A WALL
                 var nextHit = Physics2D.Linecast(shooterGuide.transform.position.round2d(),
-                        _projectileGameObject.transform.position.round2d(),
-                        LayerMask.GetMask("Wall"));
+                        _projectileGameObject.transform.position.round2d(),wallLayer);
               if (!ReferenceEquals(nextHit.collider,null))
               {
                   var distance = Vector2.Distance(nextHit.transform.position.round2d(),
@@ -125,8 +139,7 @@ public class Shooter : MonoBehaviour
                   else
                   {
                       var hitPrevious = Physics2D.Linecast(shooterGuide.transform.position.round2d(),
-                          _rayCastJointPoints.getAtEnd(2).round2d(),
-                          LayerMask.GetMask("Wall"));
+                          _rayCastJointPoints.getAtEnd(2).round2d(),wallLayer);
 
                       if (ReferenceEquals(hitPrevious.collider, null))
                       {
@@ -159,5 +172,10 @@ public class Shooter : MonoBehaviour
             _distanceJoint2D.connectedBody = null;
             _distanceJoint2D.anchor = Vector2.zero;
         }
+    }
+
+    public Projectile GetProjectile()
+    {
+        return _projectileScript;
     }
 }

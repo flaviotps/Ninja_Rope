@@ -9,6 +9,9 @@ public class Controller : MonoBehaviour
     [SerializeField] public Shooter shooterScript;
     [SerializeField] public Movement movementScript;
     [SerializeField] public BoxCollider2D boxCollider2D;
+    [SerializeField] public LayerMask groundLayer;
+    [SerializeField] public PhysicsMaterial2D bouncyMaterial;
+    [SerializeField] public PhysicsMaterial2D frictionMaterial;
     private Boolean _isGrounded;
     void Start()
     {
@@ -16,45 +19,53 @@ public class Controller : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        _isGrounded = Physics2D.IsTouchingLayers(boxCollider2D, LayerMask.GetMask("Wall"));
+        _isGrounded = Physics2D.IsTouchingLayers(boxCollider2D,groundLayer);
         HandleInput();
+        HandleMaterialChange();
     }
     
     private void HandleInput()
     {
         if (Input.GetKey(KeyCode.UpArrow) )
         {
-            movementScript.climbUp();
+            if (shooterScript.GetProjectile().isHooked)
+            {
+                movementScript.ClimbUp();
+            }
         }
         
         if (Input.GetKey(KeyCode.DownArrow) )
         {
-            movementScript.climbDown();
+            if (shooterScript.GetProjectile().isHooked)
+            {
+                movementScript.ClimbDown();
+            }
         }
         
         if (Input.GetKey(KeyCode.RightArrow) )
         {
-            if (_isGrounded)
+            if (!shooterScript.GetProjectile().isHooked)
             {
-                movementScript.moveRight();
-            }
+                movementScript.MoveRight();
+            } 
             else
             {
-                movementScript.swingRight();
+                movementScript.SwingRight(shooterScript.GetProjectile());
             }
+
         }
         
         if (Input.GetKey(KeyCode.LeftArrow) )
         {
-            if (_isGrounded)
+            if (!shooterScript.GetProjectile().isHooked)
             {
-                movementScript.moveLeft();
+                movementScript.MoveLeft();
             }
             else
             {
-                movementScript.swingLeft();
+                movementScript.SwingLeft(shooterScript.GetProjectile());
             }
         }
         
@@ -66,10 +77,22 @@ public class Controller : MonoBehaviour
         
         if (Input.GetKey(KeyCode.UpArrow) )
         {
-            if (_isGrounded)
+            if (_isGrounded && !shooterScript.GetProjectile().isHooked)
             {
-                movementScript.jump();
+                movementScript.Jump();
             }
+        }
+    }
+
+    void HandleMaterialChange()
+    {
+        if (shooterScript.GetProjectile().isHooked)
+        {
+            boxCollider2D.sharedMaterial = bouncyMaterial;
+        }
+        else
+        {
+            boxCollider2D.sharedMaterial = frictionMaterial;
         }
     }
 }
