@@ -6,22 +6,25 @@ using UnityEngine;
 public class Controller : MonoBehaviour
 {
     // Start is called before the first frame update
-    [SerializeField] public Shooter shooterScript;
-    [SerializeField] public Movement movementScript;
-    [SerializeField] public BoxCollider2D boxCollider2D;
     [SerializeField] public LayerMask groundLayer;
     [SerializeField] public PhysicsMaterial2D bouncyMaterial;
     [SerializeField] public PhysicsMaterial2D frictionMaterial;
+    
+    private Shooter _shooterScript;
+    private Movement _movementScript;
+    private BoxCollider2D _boxCollider2D;
     private Boolean _isGrounded;
     void Start()
     {
-        
+        _shooterScript = GetComponent<Shooter>();
+        _movementScript = GetComponent<Movement>();
+        _boxCollider2D = GetComponent<BoxCollider2D>();
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        _isGrounded = Physics2D.IsTouchingLayers(boxCollider2D,groundLayer);
+        _isGrounded = Physics2D.IsTouchingLayers(_boxCollider2D,groundLayer);
         HandleInput();
         HandleMaterialChange();
     }
@@ -30,69 +33,74 @@ public class Controller : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.UpArrow) )
         {
-            if (shooterScript.GetProjectile().isHooked)
+            if (_shooterScript.GetProjectile().isHooked)
             {
-                movementScript.ClimbUp();
+                _movementScript.ClimbUp();
             }
         }
         
         if (Input.GetKey(KeyCode.DownArrow) )
         {
-            if (shooterScript.GetProjectile().isHooked)
+            if (_shooterScript.GetProjectile().isHooked)
             {
-                movementScript.ClimbDown();
+                _movementScript.ClimbDown();
             }
         }
         
         if (Input.GetKey(KeyCode.RightArrow) )
         {
-            if (!shooterScript.GetProjectile().isHooked)
+            if (!_shooterScript.GetProjectile().isHooked)
             {
-                movementScript.MoveRight();
+                _movementScript.MoveRight();
             } 
             else
             {
-                movementScript.SwingRight(shooterScript.GetProjectile());
+                var playerToHookDirection = ((Vector2)_shooterScript.GetProjectile().transform.position - (Vector2) transform.position).normalized;
+                var perpendicularDirection = new Vector2(playerToHookDirection.y, -playerToHookDirection.x);
+                _movementScript.SwingRight(perpendicularDirection);
             }
 
         }
         
         if (Input.GetKey(KeyCode.LeftArrow) )
         {
-            if (!shooterScript.GetProjectile().isHooked)
+            
+            if (!_shooterScript.GetProjectile().isHooked)
             {
-                movementScript.MoveLeft();
+                _movementScript.MoveLeft();
             }
             else
             {
-                movementScript.SwingLeft(shooterScript.GetProjectile());
+                var playerToHookDirection = ((Vector2)_shooterScript.GetProjectile().transform.position - (Vector2) transform.position).normalized;
+                var perpendicularDirection = new Vector2(-playerToHookDirection.y, playerToHookDirection.x);
+                _movementScript.SwingLeft(perpendicularDirection);
             }
         }
         
         if (Input.GetKeyDown(KeyCode.Space) )
         {
-            shooterScript.FireProjectile();
+            _shooterScript.FireProjectile();
         }
         
         
         if (Input.GetKey(KeyCode.UpArrow) )
         {
-            if (_isGrounded && !shooterScript.GetProjectile().isHooked)
+            if (_isGrounded && !_shooterScript.GetProjectile().isHooked)
             {
-                movementScript.Jump();
+                _movementScript.Jump();
             }
         }
     }
 
     void HandleMaterialChange()
     {
-        if (shooterScript.GetProjectile().isHooked)
+        if (_shooterScript.GetProjectile().isHooked)
         {
-            boxCollider2D.sharedMaterial = bouncyMaterial;
+            _boxCollider2D.sharedMaterial = bouncyMaterial;
         }
         else
         {
-            boxCollider2D.sharedMaterial = frictionMaterial;
+            _boxCollider2D.sharedMaterial = frictionMaterial;
         }
     }
 }

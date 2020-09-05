@@ -5,80 +5,77 @@ using UnityEngine;
 
 public class Movement : MonoBehaviour
 {
-    [SerializeField] public Rigidbody2D rigidbody2D;
-    [SerializeField] public DistanceJoint2D distanceJoint2D;
+   
+  
+  
     [SerializeField] public LayerMask groundLayer;
-    [SerializeField] public float moveSpeed = 0.5f;
+    [SerializeField] public float moveSpeed = 0.4f;
+    [SerializeField] public float rayCastDistance = 2;
     [SerializeField] public int climbSpeed = 100;
-    [SerializeField] public int impulseForce = 100;
-    [SerializeField] public int jumpForce = 100;
-    [SerializeField] public int maxVelocity = 20;
+    [SerializeField] public int swingForce = 50;
+    [SerializeField] public int jumpForce = 250;
     
-    private float _rayCastDistance = 0.5f;
-    private Vector2 _direction = Vector2.zero;
+    private DistanceJoint2D _distanceJoint2D;
+    private Rigidbody2D _rigidbody2D;
     // Start is called before the first frame update
     void Start()
     {
-        
+        _rigidbody2D = GetComponent<Rigidbody2D>();
+        _distanceJoint2D = GetComponent<DistanceJoint2D>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        RaycastHit2D hitDirection = Physics2D.Raycast(transform.position, Vector2.down, _rayCastDistance, groundLayer);
-
-        if (hitDirection.collider != null)
-        {
-            Debug.DrawRay(transform.position, hitDirection.normal, Color.white);
-            Debug.DrawRay(transform.position, Vector2.down * _rayCastDistance, Color.yellow);
-            _direction = hitDirection.normal;
-        }
-
-        if (rigidbody2D.velocity.magnitude > maxVelocity)
-        {
-            rigidbody2D.velocity = rigidbody2D.velocity.normalized * maxVelocity;
-        }
-
     }
 
-    public void SwingRight(Projectile projectile)
+    public void SwingRight(Vector2 perpendicularDirection)
     {
-        rigidbody2D.AddForce(transform.right * (impulseForce * Time.deltaTime), ForceMode2D.Impulse); 
+        var force = perpendicularDirection * swingForce;
+        _rigidbody2D.AddForce(force, ForceMode2D.Force);
     }
     
-    public void SwingLeft(Projectile projectile)
+    public void SwingLeft(Vector2 perpendicularDirection)
     {
-        rigidbody2D.AddForce(transform.right * (-impulseForce * Time.deltaTime), ForceMode2D.Impulse); 
+            var force = perpendicularDirection * swingForce;
+            _rigidbody2D.AddForce(force, ForceMode2D.Force);
     }
     
     public void MoveRight()
     {
-        var forceDirection = new Vector2(_direction.y, -_direction.x);
-        transform.Translate(forceDirection  * moveSpeed);
+        var hitDirection = Physics2D.Raycast(transform.position, Vector2.down, rayCastDistance, groundLayer);
+
+        
+        if (!ReferenceEquals(hitDirection.collider, null))
+        {
+            var forceDirection = new Vector2(hitDirection.normal.y, -hitDirection.normal.x);
+            transform.Translate(forceDirection  * moveSpeed);
+        }
     }
     
     public void MoveLeft()
     {
-        var forceDirection = new Vector2(-_direction.y, _direction.x);
-        transform.Translate(forceDirection * moveSpeed);
+        var hitDirection = Physics2D.Raycast(transform.position, Vector2.down, rayCastDistance, groundLayer);
+
+        if (!ReferenceEquals(hitDirection.collider, null))
+        {
+            var forceDirection = new Vector2(-hitDirection.normal.y, hitDirection.normal.x);
+            transform.Translate(forceDirection * moveSpeed);
+        }
     }
     
     public void ClimbUp()
     {
-        distanceJoint2D.distance -= climbSpeed * Time.deltaTime;
-        if (distanceJoint2D.distance < 0)
-        {
-            distanceJoint2D.distance = 0;
-        }
+        _distanceJoint2D.distance -= climbSpeed * Time.deltaTime;
     }
     
     public void ClimbDown()
     {
-        distanceJoint2D.distance += climbSpeed * Time.deltaTime;
+        _distanceJoint2D.distance += climbSpeed * Time.deltaTime;
     }
     
     public void Jump()
     {
-        rigidbody2D.AddForce(transform.up * (jumpForce * Time.deltaTime), ForceMode2D.Impulse); 
+        _rigidbody2D.AddForce(transform.up * (jumpForce * Time.deltaTime), ForceMode2D.Impulse); 
     }
 }

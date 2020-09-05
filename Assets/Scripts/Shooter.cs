@@ -76,7 +76,6 @@ public class Shooter : MonoBehaviour
             {
                 _lineRenderer.SetPosition(index, _rayCastJointPoints[index]);
             }
-
             //DRAW THE LAST LINE SEGMENT (CLOSEST HOOK JOINT TO PLAYER)
             _lineRenderer.SetPosition(_lineRenderer.positionCount - 1, shooterGuide.transform.position.round2d());
         }
