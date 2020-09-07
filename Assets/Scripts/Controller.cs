@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[Serializable]
 public class Controller : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -12,19 +13,19 @@ public class Controller : MonoBehaviour
     
     private Shooter _shooterScript;
     private Movement _movementScript;
-    private BoxCollider2D _boxCollider2D;
-    private Boolean _isGrounded;
+    private CircleCollider2D _circleCollider2D;
+    [SerializeField] public Boolean _isGrounded;
     void Start()
     {
         _shooterScript = GetComponent<Shooter>();
         _movementScript = GetComponent<Movement>();
-        _boxCollider2D = GetComponent<BoxCollider2D>();
+        _circleCollider2D = GetComponent<CircleCollider2D>();
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        _isGrounded = Physics2D.IsTouchingLayers(_boxCollider2D,groundLayer);
+        _isGrounded = Physics2D.IsTouchingLayers(_circleCollider2D,groundLayer);
         HandleInput();
         HandleMaterialChange();
     }
@@ -64,7 +65,6 @@ public class Controller : MonoBehaviour
         
         if (Input.GetKey(KeyCode.LeftArrow) )
         {
-            
             if (!_shooterScript.GetProjectile().isHooked)
             {
                 _movementScript.MoveLeft();
@@ -77,7 +77,7 @@ public class Controller : MonoBehaviour
             }
         }
         
-        if (Input.GetKeyDown(KeyCode.Space) )
+        if (Input.GetKey(KeyCode.Space) )
         {
             _shooterScript.FireProjectile();
         }
@@ -96,11 +96,11 @@ public class Controller : MonoBehaviour
     {
         if (_shooterScript.GetProjectile().isHooked)
         {
-            _boxCollider2D.sharedMaterial = bouncyMaterial;
+            _circleCollider2D.sharedMaterial = bouncyMaterial;
         }
         else
         {
-            _boxCollider2D.sharedMaterial = frictionMaterial;
+            _circleCollider2D.sharedMaterial = frictionMaterial;
         }
     }
 }

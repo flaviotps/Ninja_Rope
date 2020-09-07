@@ -9,6 +9,7 @@ public class Shooter : MonoBehaviour
     [SerializeField] public GameObject projectilePrefab;
     [SerializeField] public GameObject shooterGuide;
     [SerializeField] public int projectileForce = 1000;
+    [SerializeField] public int hookImpulse = 100;
     [SerializeField] public float jointHitLimiar = 0.1f;
     [SerializeField] public LayerMask wallLayer;
     [SerializeField] public LayerMask projectileLayer;
@@ -16,14 +17,14 @@ public class Shooter : MonoBehaviour
     //PLAYER
     private DistanceJoint2D _distanceJoint2D;
     private LineRenderer _lineRenderer;
-    private BoxCollider2D _boxCollider2D;
+    private CircleCollider2D _circleCollider2D;
     private Rigidbody2D _rigidbody2D;
 
     //PROJECTILE
     private GameObject _projectileGameObject;
     private Projectile _projectileScript;
     private Rigidbody2D _projectileRigidbody2D;
-    private SpriteShapeRenderer _spriteShapeRenderer;
+    private SpriteShapeRenderer _projectileSpriteShapeRenderer;
     
     private readonly List<Vector2> _rayCastJointPoints = new List<Vector2>();
 
@@ -31,13 +32,13 @@ public class Shooter : MonoBehaviour
     {
         _lineRenderer = GetComponent<LineRenderer>();
         _distanceJoint2D = GetComponent<DistanceJoint2D>();
-        _boxCollider2D = GetComponent<BoxCollider2D>();
+        _circleCollider2D = GetComponent<CircleCollider2D>();
         _rigidbody2D = GetComponent<Rigidbody2D>();
         _projectileGameObject = Instantiate(projectilePrefab, shooterGuide.transform.position, shooterGuide.transform.rotation);
         _projectileRigidbody2D = _projectileGameObject.GetComponent<Rigidbody2D>();
         _projectileScript = _projectileGameObject.GetComponent<Projectile>();
-        _spriteShapeRenderer = _projectileGameObject.GetComponent<SpriteShapeRenderer>();
-        Physics2D.IgnoreCollision(_boxCollider2D, _projectileGameObject.GetComponent<CircleCollider2D>());
+        _projectileSpriteShapeRenderer = _projectileGameObject.GetComponent<SpriteShapeRenderer>();
+        Physics2D.IgnoreCollision(_circleCollider2D, _projectileGameObject.GetComponent<CircleCollider2D>());
     }
 
     // Update is called once per frame
@@ -51,17 +52,34 @@ public class Shooter : MonoBehaviour
     {
         if (_projectileScript.isHooked)
         {
+            //RESET THE PROJECTILE 
             _rayCastJointPoints.Clear();
             _projectileScript.isHooked = false;
-            _spriteShapeRenderer.enabled = false;
-            _rigidbody2D.velocity *= new Vector2(1, 0);
+            _projectileSpriteShapeRenderer.enabled = false;
+            _projectileRigidbody2D.simulated = false;
+            _distanceJoint2D.enabled = false;
+            _distanceJoint2D.connectedBody = null;
+            _distanceJoint2D.anchor = Vector2.zero;
         }
         else
         {
-            _spriteShapeRenderer.enabled = true;
+            //SET THE PROJECTILE 
+            _projectileSpriteShapeRenderer.enabled = true;
+            _projectileRigidbody2D.simulated = true;
             _projectileGameObject.transform.position = shooterGuide.transform.position;
             _projectileRigidbody2D.bodyType = RigidbodyType2D.Dynamic;
-            _projectileRigidbody2D.AddForce(_projectileGameObject.transform.up * projectileForce);
+            
+            //SHOOTS THE PROJECTILE IN THE VELOCITY DIRECTION
+            if (_rigidbody2D.velocity.magnitude == 0)
+            {
+                _projectileRigidbody2D.AddForce(_projectileGameObject.transform.up * projectileForce);
+            }
+            else
+            {
+                var force = NormalizeVelocityDirection(_rigidbody2D.velocity.normalized) * projectileForce;
+                _projectileRigidbody2D.AddForce(force);
+            }
+
         }
     }
 
@@ -69,7 +87,7 @@ public class Shooter : MonoBehaviour
     {
         if (_projectileScript.isHooked)
         {
-            //ALOCATE ENOUGH POSITIONS TO ALL SEGMENTS + LAST SEGMENT
+            //ALLOCATES ENOUGH POSITIONS TO ALL SEGMENTS + LAST SEGMENT
             _lineRenderer.positionCount = _rayCastJointPoints.Count + 1;
             //DRAW ALL LINES SEGMENTS
             for (var index = 0; index < _rayCastJointPoints.Count; index++)
@@ -81,13 +99,9 @@ public class Shooter : MonoBehaviour
         }
         else
         {
+            //CLEAR LINE WHEN NOT HOOKED
             _lineRenderer.positionCount = 0;
             _rayCastJointPoints.Clear();
-        }
-
-        if (_rayCastJointPoints.Count > 2)
-        {
-            Debug.DrawLine(shooterGuide.transform.position.round2d(), _rayCastJointPoints.getAtEnd( 2).round2d());
         }
     }
 
@@ -107,6 +121,9 @@ public class Shooter : MonoBehaviour
                     _rayCastJointPoints.Add(projectileHit.point.round2d());
                     _projectileGameObject.transform.position = projectileHit.point.round2d();
                 }
+                
+                //ADDS IMPULSE WHEN A NEW HOOK IS CREATED
+                _rigidbody2D.AddForce(_rigidbody2D.velocity * hookImpulse, ForceMode2D.Impulse);
             }
             else if (_rayCastJointPoints.Count > 0)
             {
@@ -165,16 +182,25 @@ public class Shooter : MonoBehaviour
             _distanceJoint2D.connectedBody = _projectileRigidbody2D;
             _distanceJoint2D.anchor = Vector2.zero;
         }
-        else if(!_projectileScript.isHooked)
-        {
-            _distanceJoint2D.enabled = false;
-            _distanceJoint2D.connectedBody = null;
-            _distanceJoint2D.anchor = Vector2.zero;
-        }
     }
 
+    //NORMALIZE THE SHOOT DIRECTION (ALWAYS SHOOTS UP)
+    private Vector2 NormalizeVelocityDirection(Vector2 normalizedVelocity)
+    {
+        const float normalizedMinimumUpDirection = 1f;
+        var temp = normalizedVelocity;
+
+        if (temp.y < normalizedMinimumUpDirection)
+        {
+            temp.y = normalizedMinimumUpDirection;
+        }
+        
+        return temp;
+    }
+    
     public Projectile GetProjectile()
     {
         return _projectileScript;
     }
+
 }
