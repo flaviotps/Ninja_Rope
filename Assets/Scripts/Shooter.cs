@@ -85,7 +85,12 @@ public class Shooter : MonoBehaviour
 
     private void UpdateLine()
     {
-        if (_projectileScript.isHooked)
+
+        if (_rayCastJointPoints.Count == 0)
+        {
+            _lineRenderer.positionCount = 0;
+        }
+        else if (_projectileScript.isHooked)
         {
             //ALLOCATES ENOUGH POSITIONS TO ALL SEGMENTS + LAST SEGMENT
             _lineRenderer.positionCount = _rayCastJointPoints.Count + 1;
@@ -95,7 +100,7 @@ public class Shooter : MonoBehaviour
                 _lineRenderer.SetPosition(index, _rayCastJointPoints[index]);
             }
             //DRAW THE LAST LINE SEGMENT (CLOSEST HOOK JOINT TO PLAYER)
-            _lineRenderer.SetPosition(_lineRenderer.positionCount - 1, shooterGuide.transform.position.round2d());
+            _lineRenderer.SetPosition(_lineRenderer.positionCount - 1, shooterGuide.transform.position);
         }
         else
         {
@@ -113,13 +118,13 @@ public class Shooter : MonoBehaviour
             //ADDS THE INITIAL HOOK POSITION TO THE LIST
             if (_rayCastJointPoints.Count == 0)
             {
-                var projectileHit = Physics2D.Linecast(shooterGuide.transform.position.round2d(),
-                    _projectileGameObject.transform.position.round2d(),projectileLayer);
+                var projectileHit = Physics2D.Linecast(shooterGuide.transform.position,
+                    _projectileGameObject.transform.position,projectileLayer);
 
                 if (!ReferenceEquals(projectileHit.collider, null))
                 {
-                    _rayCastJointPoints.Add(projectileHit.point.round2d());
-                    _projectileGameObject.transform.position = projectileHit.point.round2d();
+                    _rayCastJointPoints.Add(projectileHit.point);
+                    _projectileGameObject.transform.position = projectileHit.point;
                 }
                 
                 //ADDS IMPULSE WHEN A NEW HOOK IS CREATED
@@ -128,18 +133,18 @@ public class Shooter : MonoBehaviour
             else if (_rayCastJointPoints.Count > 0)
             {
                 //ADDS HOOK JOINS WHEN THE ROPE COLLIDES WITH A WALL
-                var nextHit = Physics2D.Linecast(shooterGuide.transform.position.round2d(),
-                        _projectileGameObject.transform.position.round2d(),wallLayer);
+                var nextHit = Physics2D.Linecast(shooterGuide.transform.position,
+                        _projectileGameObject.transform.position,wallLayer);
               if (!ReferenceEquals(nextHit.collider,null))
               {
-                  var distance = Vector2.Distance(nextHit.transform.position.round2d(),
-                      _rayCastJointPoints.last().round2d());
+                  var distance = Vector2.Distance(nextHit.transform.position,
+                      _rayCastJointPoints.last());
                   if (distance > jointHitLimiar)
                   {
-                      if (_rayCastJointPoints.FindAll(vector => vector == nextHit.point.round2d()).Count == 0)
+                      if (_rayCastJointPoints.FindAll(vector => vector == nextHit.point).Count == 0)
                       {
-                          _rayCastJointPoints.Add(nextHit.point.round2d());
-                          _projectileGameObject.transform.position = nextHit.point.round2d();
+                          _rayCastJointPoints.Add(nextHit.point);
+                          _projectileGameObject.transform.position = nextHit.point;
                       }
                   }
               }
@@ -147,30 +152,30 @@ public class Shooter : MonoBehaviour
               //REMOVE HOOK JOINTS
               if (_rayCastJointPoints.Count >= 2)
               {
-                  if (_distanceJoint2D.distance.round(0) == 0)
+                  if (_distanceJoint2D.distance.round(1) == 0)
                   {
-                      _projectileGameObject.transform.position = _rayCastJointPoints.getAtEnd(2).round2d();
+                      _projectileGameObject.transform.position = _rayCastJointPoints.getAtEnd(2);
                       _rayCastJointPoints.RemoveAt(_rayCastJointPoints.lastIndex());
                   }
                   else
                   {
-                      var hitPrevious = Physics2D.Linecast(shooterGuide.transform.position.round2d(),
-                          _rayCastJointPoints.getAtEnd(2).round2d(),wallLayer);
+                      var hitPrevious = Physics2D.Linecast(shooterGuide.transform.position,
+                          _rayCastJointPoints.getAtEnd(2),wallLayer);
 
                       if (ReferenceEquals(hitPrevious.collider, null))
                       {
-                          _projectileGameObject.transform.position = _rayCastJointPoints.getAtEnd(2).round2d();
+                          _projectileGameObject.transform.position = _rayCastJointPoints.getAtEnd(2);
                           _rayCastJointPoints.RemoveAt(_rayCastJointPoints.lastIndex());
                       }
                       else
                       {
                           var distance = Vector2.Distance(hitPrevious.point,
                               _rayCastJointPoints.getAtEnd(
-                                  2).round2d());
+                                  2));
 
-                          if (distance.round(0) == 0)
+                          if (distance.round(1) == 0)
                           {
-                              _projectileGameObject.transform.position = _rayCastJointPoints.getAtEnd(2).round2d();
+                              _projectileGameObject.transform.position = _rayCastJointPoints.getAtEnd(2);
                               _rayCastJointPoints.RemoveAt(_rayCastJointPoints.lastIndex());
                           }
                       }

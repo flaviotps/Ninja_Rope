@@ -1638,6 +1638,21 @@ PrefabInstance:
       propertyPath: verticalJoystick
       value: 
       objectReference: {fileID: 881462501}
+    - target: {fileID: 5456366535690988434, guid: f0fef01b7448f1843b25091c6c59a3d6,
+        type: 3}
+      propertyPath: airBouncyMaterial
+      value: 
+      objectReference: {fileID: 6200000, guid: 6554cc064fb5b0f468eb4f9270f170be, type: 2}
+    - target: {fileID: 5456366535690988434, guid: f0fef01b7448f1843b25091c6c59a3d6,
+        type: 3}
+      propertyPath: hookedBouncyMaterial
+      value: 
+      objectReference: {fileID: 6200000, guid: 7d08f3525fed4aa44b5721995d5bda83, type: 2}
+    - target: {fileID: 5456366535690988434, guid: f0fef01b7448f1843b25091c6c59a3d6,
+        type: 3}
+      propertyPath: groundedFrictionMaterial
+      value: 
+      objectReference: {fileID: 6200000, guid: 1082763f0f5097e46b087c18d9b94f87, type: 2}
     - target: {fileID: 5456366535690988436, guid: f0fef01b7448f1843b25091c6c59a3d6,
         type: 3}
       propertyPath: m_UsedByEffector
@@ -1652,6 +1667,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 5456366535690988445, guid: f0fef01b7448f1843b25091c6c59a3d6,
+        type: 3}
+      propertyPath: m_Interpolate
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5456366535690988447, guid: f0fef01b7448f1843b25091c6c59a3d6,
+        type: 3}
+      propertyPath: projectileForce
+      value: 8000
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f0fef01b7448f1843b25091c6c59a3d6, type: 3}

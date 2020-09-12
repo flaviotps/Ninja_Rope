@@ -14,15 +14,15 @@ public static class Extensions
     //method becomes a part of.
     public static Vector2 round2d(this Vector2 vector)
     {
-        vector.x = (float) Math.Round(vector.x, 1);
-        vector.y = (float) Math.Round(vector.y, 1);
+        vector.x = (float) Math.Round(vector.x, 2);
+        vector.y = (float) Math.Round(vector.y, 2);
         return vector;
     }
     
     public static Vector2 round2d(this Vector3 vector)
     {
-        vector.x = (float) Math.Round(vector.x, 1);
-        vector.y = (float) Math.Round(vector.y, 1);
+        vector.x = (float) Math.Round(vector.x, 2);
+        vector.y = (float) Math.Round(vector.y, 2);
         vector.z = 0;
         return vector;
     }

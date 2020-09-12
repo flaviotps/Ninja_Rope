@@ -10,8 +10,9 @@ public class Controller : MonoBehaviour
     [SerializeField] public LayerMask groundLayer;
     [SerializeField] public Joystick HorizontalJoystick;
     [SerializeField] public Joystick verticalJoystick;
-    [SerializeField] public PhysicsMaterial2D bouncyMaterial;
-    [SerializeField] public PhysicsMaterial2D frictionMaterial;
+    [SerializeField] public PhysicsMaterial2D hookedBouncyMaterial;
+    [SerializeField] public PhysicsMaterial2D airBouncyMaterial;
+    [SerializeField] public PhysicsMaterial2D groundedFrictionMaterial;
     
     private Shooter _shooterScript;
     private Movement _movementScript;
@@ -36,7 +37,7 @@ public class Controller : MonoBehaviour
     {
         if (HorizontalJoystick.Horizontal > 0f)
         {
-            if (!_shooterScript.GetProjectile().isHooked)
+            if (!_shooterScript.GetProjectile().isHooked || _shooterScript.GetProjectile().isHooked && _isGrounded)
             {
                 _movementScript.MoveRight(HorizontalJoystick.Horizontal);
             } 
@@ -48,7 +49,7 @@ public class Controller : MonoBehaviour
             }
         }else if (HorizontalJoystick.Horizontal < 0f)
         {
-            if (!_shooterScript.GetProjectile().isHooked)
+            if (!_shooterScript.GetProjectile().isHooked || _shooterScript.GetProjectile().isHooked && _isGrounded)
             {
                 _movementScript.MoveLeft(HorizontalJoystick.Horizontal);
             }
@@ -86,11 +87,15 @@ public class Controller : MonoBehaviour
     {
         if (_shooterScript.GetProjectile().isHooked)
         {
-            _circleCollider2D.sharedMaterial = bouncyMaterial;
+            _circleCollider2D.sharedMaterial = hookedBouncyMaterial;
+        }
+        else if(_isGrounded)
+        {
+            _circleCollider2D.sharedMaterial = groundedFrictionMaterial;
         }
         else
         {
-            _circleCollider2D.sharedMaterial = frictionMaterial;
+            _circleCollider2D.sharedMaterial = airBouncyMaterial;
         }
     }
 }
