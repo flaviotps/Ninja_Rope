@@ -8,13 +8,15 @@ public class Controller : MonoBehaviour
 {
     // Start is called before the first frame update
     [SerializeField] public LayerMask groundLayer;
+    [SerializeField] public Joystick HorizontalJoystick;
+    [SerializeField] public Joystick verticalJoystick;
     [SerializeField] public PhysicsMaterial2D bouncyMaterial;
     [SerializeField] public PhysicsMaterial2D frictionMaterial;
     
     private Shooter _shooterScript;
     private Movement _movementScript;
     private CircleCollider2D _circleCollider2D;
-    [SerializeField] public Boolean _isGrounded;
+    private Boolean _isGrounded;
     void Start()
     {
         _shooterScript = GetComponent<Shooter>();
@@ -32,27 +34,11 @@ public class Controller : MonoBehaviour
     
     private void HandleInput()
     {
-        if (Input.GetKey(KeyCode.UpArrow) )
-        {
-            if (_shooterScript.GetProjectile().isHooked)
-            {
-                _movementScript.ClimbUp();
-            }
-        }
-        
-        if (Input.GetKey(KeyCode.DownArrow) )
-        {
-            if (_shooterScript.GetProjectile().isHooked)
-            {
-                _movementScript.ClimbDown();
-            }
-        }
-        
-        if (Input.GetKey(KeyCode.RightArrow) )
+        if (HorizontalJoystick.Horizontal > 0f)
         {
             if (!_shooterScript.GetProjectile().isHooked)
             {
-                _movementScript.MoveRight();
+                _movementScript.MoveRight(HorizontalJoystick.Horizontal);
             } 
             else
             {
@@ -60,14 +46,11 @@ public class Controller : MonoBehaviour
                 var perpendicularDirection = new Vector2(playerToHookDirection.y, -playerToHookDirection.x);
                 _movementScript.SwingRight(perpendicularDirection);
             }
-
-        }
-        
-        if (Input.GetKey(KeyCode.LeftArrow) )
+        }else if (HorizontalJoystick.Horizontal < 0f)
         {
             if (!_shooterScript.GetProjectile().isHooked)
             {
-                _movementScript.MoveLeft();
+                _movementScript.MoveLeft(HorizontalJoystick.Horizontal);
             }
             else
             {
@@ -76,18 +59,25 @@ public class Controller : MonoBehaviour
                 _movementScript.SwingLeft(perpendicularDirection);
             }
         }
-        
-        if (Input.GetKey(KeyCode.Space) )
+
+        if (verticalJoystick.Vertical > 0f)
         {
-            _shooterScript.FireProjectile();
-        }
-        
-        
-        if (Input.GetKey(KeyCode.UpArrow) )
-        {
-            if (_isGrounded && !_shooterScript.GetProjectile().isHooked)
+            if (_shooterScript.GetProjectile().isHooked)
             {
-                _movementScript.Jump();
+                _movementScript.ClimbUp(verticalJoystick.Vertical);
+            }
+            else
+            {
+                if (_isGrounded)
+                {
+                    _movementScript.Jump();
+                }
+            }
+        }else if (verticalJoystick.Vertical < 0f)
+        {
+            if (_shooterScript.GetProjectile().isHooked)
+            {
+                _movementScript.ClimbDown(verticalJoystick.Vertical);
             }
         }
     }

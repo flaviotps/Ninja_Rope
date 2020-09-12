@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.UIElements;
 using UnityEngine;
 
 public class Projectile : MonoBehaviour
 {
     // Start is called before the first frame update
-
     private Rigidbody2D _rigidbody2D;
     private const string HookTag = "hookable";
     public Boolean isHooked ;
-    
+
     void Start()
     {
         _rigidbody2D = GetComponent<Rigidbody2D>();
@@ -25,10 +25,10 @@ public class Projectile : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-     
     }
+  
 
-    private void OnTriggerEnter2D(Collider2D other)
+    private void OnCollisionEnter2D(Collision2D other)
     {
         if (other.gameObject.tag.Equals(HookTag))
         {

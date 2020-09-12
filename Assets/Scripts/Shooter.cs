@@ -188,11 +188,21 @@ public class Shooter : MonoBehaviour
     private Vector2 NormalizeVelocityDirection(Vector2 normalizedVelocity)
     {
         const float normalizedMinimumUpDirection = 1f;
+        const float normalizedMinimumSideDirection = 0.5f;
         var temp = normalizedVelocity;
 
         if (temp.y < normalizedMinimumUpDirection)
         {
             temp.y = normalizedMinimumUpDirection;
+
+            if (temp.x > 0)
+            {
+                temp.x = normalizedMinimumSideDirection;
+            }
+            else if(temp.x < 0)
+            {
+                temp.x = -normalizedMinimumSideDirection;
+            }
         }
         
         return temp;

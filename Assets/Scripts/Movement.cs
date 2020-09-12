@@ -9,9 +9,9 @@ public class Movement : MonoBehaviour
     [SerializeField] public LayerMask groundLayer;
     [SerializeField] public float moveSpeed = 0.4f;
     [SerializeField] public float rayCastDistance = 2;
-    [SerializeField] public int climbSpeed = 100;
-    [SerializeField] public int swingForce = 50;
-    [SerializeField] public int jumpForce = 250;
+    [SerializeField] public float climbSpeed = 100;
+    [SerializeField] public float swingForce = 50;
+    [SerializeField] public float jumpForce = 250;
     [SerializeField] public float maximumTilt = 35;
     
     private DistanceJoint2D _distanceJoint2D;
@@ -43,24 +43,24 @@ public class Movement : MonoBehaviour
             _rigidbody2D.AddForce(force, ForceMode2D.Impulse);
     }
     
-    public void MoveRight()
+    public void MoveRight(float horizontalInput)
     {
-        MoveToDirection(1);
+        MoveToDirection(horizontalInput);
     }
     
-    public void MoveLeft()
+    public void MoveLeft(float horizontalInput)
     {
-        MoveToDirection(-1);
+        MoveToDirection(horizontalInput);
     }
     
-    public void ClimbUp()
+    public void ClimbUp(float verticalInput)
     {
-        _distanceJoint2D.distance -= climbSpeed;
+        _distanceJoint2D.distance -= climbSpeed * Math.Abs(verticalInput);;
     }
     
-    public void ClimbDown()
+    public void ClimbDown(float verticalInput)
     {
-        _distanceJoint2D.distance += climbSpeed;
+        _distanceJoint2D.distance += climbSpeed * Math.Abs(verticalInput);
     }
     
     public void Jump()
